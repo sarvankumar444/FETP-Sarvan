@@ -2,7 +2,7 @@ import json
 
 import requests
 from authlib.integrations.flask_client import OAuth
-from flask import Flask, abort, redirect, render_template, session, url_for
+from flask import Flask, abort, redirect, render_template, session, url_for,request,jsonify
 
 app = Flask(__name__)
 
@@ -41,10 +41,6 @@ def googleCallback():
     # fetch access token and id token using authorization code
     token = oauth.myApp.authorize_access_token()
 
-    # google people API - https://developers.google.com/people/api/rest/v1/people/get
-    # Google OAuth 2.0 playground - https://developers.google.com/oauthplayground
-    # make sure you enable the Google People API in the Google Developers console under "Enabled APIs & services" section
-
     # fetch user data with access token
     personDataUrl = "https://people.googleapis.com/v1/people/me?personFields=genders,birthdays"
     personData = requests.get(personDataUrl, headers={
@@ -68,8 +64,47 @@ def logout():
     session.pop("user", None)
     return redirect(url_for("home"))
 
+# Second code phase 2
+# -------------
+def process_word(size):
+    word = "FORMULAQSOLUTIONSFORMULAQSOLUTIONS"
+    l = [letter for letter in word]
+    result = []
 
+    num = size // 2
 
+    for i in range(num + 1):
+        spaces = " " * (size - i - 1)
+        character = "".join(l[i:(i * 3) + 1])
+        result.append(spaces + character)
+
+    ch = list(character)
+
+    try:
+        for i in range(num, -1, -1):
+            if ch != []:
+                spaces = " " * (size - i - 1)
+
+                if ch != []:
+                    ch.pop(0)
+                    ch.pop(-1)
+
+                character = "".join(ch)
+                result.append(spaces + character)
+    except IndexError:
+        pass
+
+    return result
+
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    if request.method == 'POST':
+        data = request.get_json()
+        size = int(data['size'])
+        result = process_word(size)
+        return jsonify({'result': result})
+    else:
+        return render_template('home.html')
 
 
 if __name__ == "__main__":

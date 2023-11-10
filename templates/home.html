@@ -1,24 +1,20 @@
 <html>
-
 <head>
     <meta charset="utf-8" />
     <title>Flask Google Login Example Web Application</title>
-     <style>
-        body
-        
-        {
+    <style>
+        body {
             font-family: Arial, sans-serif;
             text-align: center;
             background-color: #f4f4f4;
             padding: 20px;
         }
-
         .profile-box {
             border: 1px solid #ccc;
             padding: 20px;
             background-color: #fff;
             border-radius: 10px;
-            max-width: 400px;
+            max-width: 600px;
             margin: 0 auto;
         }
 
@@ -41,47 +37,72 @@
             font-size: 18px;
             margin-top: 20px;
         }
+        #size,
+        #result,
+        button {
+            margin-top: 10px;
+        }
     </style>
 </head>
-
 <body>
     {% if session %}
-    <h1>Welcome {{session.userinfo.preferred_username}}!</h1>
-    <p><img src="{{ session.userinfo.picture }}" alt="Profile Picture"></p>
-    <p>Hello {{ session.userinfo.name }}   <a href="{{url_for('logout')}}">[ Sign out ]</a></p>
-    <p>You are signed in with email {{ session.userinfo.email }}</p>
-    <h1>{{ full_name }}</h1>
-    <p id="indian_time"></p>
-<!--    <div><pre>{{pretty}}</pre></div>-->
-    {% else %}
-    <p><a href="{{url_for('googleLogin')}}">Login with Google</a></p>
-    {% endif %}
-<!--    <form action="/generate_pattern" method="post">-->
-<!--        <label for="size">Enter No of lines for design:</label>-->
-<!--        <input type="number" id="size" name="size" min="1" required>-->
-<!--        <input type="submit" value="Generate Pattern">-->
-<!--    </form>-->
-
-<!--    {% if pattern %}-->
-<!--        <pre>-->
-<!--            {% for line in pattern %}-->
-<!--                {{ line }}-->
-<!--            {% endfor %}-->
-<!--        </pre>-->
-<!--    {% endif %}-->
-
-<script>
-        function updateIndianTime() {
-            const now = new Date();
-            const options = { timeZone: 'Asia/Kolkata' };
-            const indianTime = now.toLocaleString('en-US', options);
-            document.getElementById('indian_time').textContent = `Current Indian Time: ${indianTime}`;
+    <div class="profile-box">
+        <h1>{{session.userinfo.preferred_username}}</h1>
+        <p><img src="{{ session.userinfo.picture }}" alt="Profile Picture"></p>
+        <p>Hello {{ session.userinfo.name }} <a href="{{url_for('logout')}}" style="text-decoration:none">[ Sign out ]</a></p>
+        <p>You are signed in with the email {{ session.userinfo.email }}</p>
+        <h1>{{ full_name }}</h1>
+        <p id="indian_time"></p>
+        <!--    <div><pre>{{pretty}}</pre></div>-->
+        <!-- Generate Pattern Form -->
+        <label for="size">Number of Lines </label>
+        <input type="number" id="size" min="1" max="100">
+        <br>
+        <button onclick="processInput()"> Display </button>
+        <br>
+        <div id="result"></div>
+    </div>
+    <script>
+        function processInput() {
+            const sizeInput = document.getElementById('size');
+            const size = sizeInput.value;
+            if (size < 1 || size > 100) {
+                alert("Please enter a size between 1 and 100.");
+                return;
+            }
+            fetch('/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ size })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const resultDiv = document.getElementById('result');
+                resultDiv.innerHTML = data.result.join('<br>');
+            });
         }
-
-        setInterval(updateIndianTime, 1000);
-        updateIndianTime(); // Call initially to show time immediately
     </script>
+    <script>
+    function updateIndianTime() {
+        const now = new Date();
+        const options = {
+            timeZone: 'Asia/Kolkata',
+            hour12: true,
+            hour: 'numeric',
+            minute: 'numeric',
+            second: 'numeric'
+        };
+        const indianTime = now.toLocaleString('en-US', options);
+        document.getElementById('indian_time').textContent = `Current Indian Time: ${indianTime}`;
+    }
+    setInterval(updateIndianTime, 1000);
+    updateIndianTime(); // Call initially to show time immediately
+</script>
+    {% else %}
+    <button><p><a href="{{url_for('googleLogin')}}" style="text-decoration:none">Login with Google</a></p></button>
+    {% endif %}
 
 </body>
-
 </html>
